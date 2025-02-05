@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyFetch.WebApi", "CurrencyFetch.WebApi\CurrencyFetch.WebApi.csproj", "{046B252C-43E6-4BA6-BDFA-1300B7BC887C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyFetch.Core", "CurrencyFetch.Core\CurrencyFetch.Core.csproj", "{FEADFDAB-BBCE-46AE-BC27-6314250EFD89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{046B252C-43E6-4BA6-BDFA-1300B7BC887C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{046B252C-43E6-4BA6-BDFA-1300B7BC887C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{046B252C-43E6-4BA6-BDFA-1300B7BC887C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{046B252C-43E6-4BA6-BDFA-1300B7BC887C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEADFDAB-BBCE-46AE-BC27-6314250EFD89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEADFDAB-BBCE-46AE-BC27-6314250EFD89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEADFDAB-BBCE-46AE-BC27-6314250EFD89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEADFDAB-BBCE-46AE-BC27-6314250EFD89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26909318-5461-4FD4-A212-046C6DB01333}
+	EndGlobalSection
+EndGlobal
