@@ -1,3 +1,5 @@
+using CurrencyFetch.Core.Infrastructure;
+using CurrencyFetch.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CurrencyFetch.WebApi.Controllers
@@ -6,28 +8,23 @@ namespace CurrencyFetch.WebApi.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
+        private readonly CurrencyService _currencyService;
+        public WeatherForecastController(CurrencyService currencyService)
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
+            _currencyService = currencyService;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] string symbol)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            await _currencyService.InsertCurrencyDataAsync(symbol);
+            return Ok();
+        }
+        [HttpGet]
+        public async Task<ActionResult> GetStatus([FromQuery] Guid jobId)
+        {
+            var status = await MongoDbService.GetLoadStatus(jobId, "LoadStatuses");
+            return Ok(status);
         }
     }
 }
