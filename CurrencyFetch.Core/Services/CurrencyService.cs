@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CurrencyFetch.Core.Services
 {
-    public class CurrencyService
+    public class CurrencyService : ICurrencyService
     {
         private readonly IExchangeMarketHttpClient _httpClient;
         private readonly ILogger<CurrencyService> _logger;
@@ -19,27 +19,65 @@ namespace CurrencyFetch.Core.Services
             _logger = logger;
         }
 
-        public async Task InsertCurrencyDataAsync(string symbol)
+        public async Task InsertCurrencyDataAsync(string symbol, DateTime startDate, DateTime endDate)
         {
-            JObject marketData = await _httpClient.GetCurrencyDataAsync(symbol);
-
             Guid jobId = Guid.NewGuid();
-            marketData["jobId"] = jobId.ToString();
-
-            var bsonData = BsonDocument.Parse(marketData.ToString());
-            var colection = MongoDbService.GetCollection<BsonDocument>("CurrencyStatistics");
-
             LoadStatus newStatus = new LoadStatus
             {
                 Id = ObjectId.GenerateNewId(),
                 JobId = jobId,
-                Status = "In procesing",
+                Status = "In processing",
             };
 
             try
             {
                 await InsertLoadStatusDataAsync(newStatus);
-                await colection.InsertOneAsync(bsonData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error inserting LoadStatus into MongoDB.");
+                return;
+            }
+
+            JObject dataObject = new JObject
+            {
+                ["jobId"] = jobId.ToString(),
+            };
+
+            try
+            {
+                JToken statistics;
+                if (startDate.Day == endDate.Day)
+                {
+                    statistics = await _httpClient.GetCurrencyDataAsync(symbol);
+                }
+                else
+                {
+                    statistics = await _httpClient.GetKlineStatsAsync(symbol, startDate, endDate);
+                }
+
+                if (statistics == null || statistics.Type == JTokenType.Null)
+                {
+                    throw new Exception("Received null or invalid response from Binance API.");
+                }
+
+                dataObject["statistics"] = statistics;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching data from Binance API.");
+                newStatus.CompletionTime = DateTime.UtcNow;
+                newStatus.Status = "Data fetch error";
+                await UpdateLoadStatusDataAsync(newStatus);
+                return;
+            }
+
+            try
+            {
+                var bsonData = BsonDocument.Parse(dataObject.ToString());
+                var collection = MongoDbService.GetCollection<BsonDocument>("CurrencyStatistics");
+
+                await collection.InsertOneAsync(bsonData);
 
                 newStatus.CompletionTime = DateTime.UtcNow;
                 newStatus.Status = "Success";
@@ -47,22 +85,22 @@ namespace CurrencyFetch.Core.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error when inserting CurrencyStatistics data into MongoDB");
-
+                _logger.LogError(ex, "Error inserting data into MongoDB.");
                 newStatus.CompletionTime = DateTime.UtcNow;
                 newStatus.Status = "Insertion error";
                 await UpdateLoadStatusDataAsync(newStatus);
             }
         }
 
-        public static async Task InsertLoadStatusDataAsync(LoadStatus status)
+
+        private async Task InsertLoadStatusDataAsync(LoadStatus status)
         {
             var collection = MongoDbService.GetCollection<LoadStatus>("LoadStatuses");
 
             await collection.InsertOneAsync(status);
         }
 
-        public async Task UpdateLoadStatusDataAsync(LoadStatus newStatus)
+        private async Task UpdateLoadStatusDataAsync(LoadStatus newStatus)
         {
             var collection = MongoDbService.GetCollection<LoadStatus>("LoadStatuses");
             var filter = Builders<LoadStatus>.Filter.Eq(ls => ls.Id, newStatus.Id);

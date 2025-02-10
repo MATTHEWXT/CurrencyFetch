@@ -9,7 +9,7 @@ namespace CurrencyFetch.Core.Infrastructure
         public static IServiceCollection AddCurrencyFetchServices(this IServiceCollection services)
         {
             services.AddHttpClient<IExchangeMarketHttpClient, ExchangeMarketHttpClient>();
-            services.AddScoped<CurrencyService>();
+            services.AddScoped<ICurrencyService, CurrencyService>();
             return services;
         }
     }
